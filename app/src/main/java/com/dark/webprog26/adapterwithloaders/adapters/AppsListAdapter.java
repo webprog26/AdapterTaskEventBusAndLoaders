@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dark.webprog26.adapterwithloaders.R;
+import com.dark.webprog26.adapterwithloaders.listeners.OnRadioButtonClickListener;
+import com.dark.webprog26.adapterwithloaders.managers.AppCategoryManager;
 import com.dark.webprog26.adapterwithloaders.models.AppCategoriesModel;
 import com.dark.webprog26.adapterwithloaders.models.AppModel;
 
@@ -53,6 +55,18 @@ public class AppsListAdapter extends RecyclerView.Adapter<AppsListAdapter.AppsLi
         holder.mRbEducational.setChecked(appCategoriesModel.isEducational());
         holder.mRbForFun.setChecked(appCategoriesModel.isForFun());
         holder.mRbBlocked.setChecked(appCategoriesModel.isBlocked());
+
+        TextView appCategoryTextView = holder.mTvAppCategory;
+
+        OnRadioButtonClickListener clickListener = new OnRadioButtonClickListener(appModel,
+                position, mContextWeakReference.get(), appCategoryTextView);
+
+        new AppCategoryManager(mContextWeakReference.get()).setAppCategory(appCategoriesModel, appCategoryTextView);
+
+        holder.mRbEducational.setOnClickListener(clickListener);
+        holder.mRbForFun.setOnClickListener(clickListener);
+        holder.mRbBlocked.setOnClickListener(clickListener);
+
     }
 
     @Override

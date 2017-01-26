@@ -1,5 +1,9 @@
 package com.dark.webprog26.adapterwithloaders;
 
+import android.database.Cursor;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -12,9 +16,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dark.webprog26.adapterwithloaders.adapters.AppsListAdapter;
+import com.dark.webprog26.adapterwithloaders.db.DbHelper;
+import com.dark.webprog26.adapterwithloaders.handlers.AppsAsyncQueryHandler;
 import com.dark.webprog26.adapterwithloaders.managers.AppsListDownloadManager;
+import com.dark.webprog26.adapterwithloaders.models.AppModel;
+import com.dark.webprog26.adapterwithloaders.models.events.AppCategoryChangedEvent;
 import com.dark.webprog26.adapterwithloaders.models.events.AppsListLoadedEvent;
 import com.dark.webprog26.adapterwithloaders.models.events.RetrieveAppsListEvent;
+import com.dark.webprog26.adapterwithloaders.models.events.SaveAppToDatabaseEvent;
+import com.dark.webprog26.adapterwithloaders.provider.DeviceAppsProvider;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -23,9 +33,19 @@ import org.greenrobot.eventbus.ThreadMode;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String TAG = "MainActivity_TAG";
+    private static final int DEVICE_APPS_LIST_LOADER_ID = DeviceAppsProvider.DEVICE_APPS_PATH.hashCode();
+    public static final String[] DEVICE_APPS_SUMMARY_PROJECCTION = new String[]{
+            DbHelper.APP_ID,
+            DbHelper.APP_NAME,
+            DbHelper.IS_EDUCATIONAL,
+            DbHelper.IS_BLOCKED,
+            DbHelper.IS_FOR_FUN
+    };
+
+    private AppsAsyncQueryHandler mAppsAsyncQueryHandler;
 
     @BindView(R.id.pbLoadingInProgress)
     ProgressBar mPbLoading;
@@ -57,6 +77,10 @@ public class MainActivity extends AppCompatActivity{
         mRvAppsList.setHasFixedSize(true);
         mRvAppsList.setItemAnimator(new DefaultItemAnimator());
         mRvAppsList.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+
+        mAppsAsyncQueryHandler = new AppsAsyncQueryHandler(getContentResolver());
+
+        getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
     }
 
     @Override
@@ -127,6 +151,54 @@ public class MainActivity extends AppCompatActivity{
 //                break;
 //        }
 //    }
+
+
+    /**
+     * App category has been updated, we may ask {@link AppsListAdapter} to
+     * update specific row by giving him this row's position, included in {@link AppCategoryChangedEvent}
+     * @param appCategoryChangedEvent {@link AppCategoryChangedEvent}
+     */
+    @Subscribe
+    public void onAppCategoryChangedEvent(AppCategoryChangedEvent appCategoryChangedEvent){
+        EventBus.getDefault().post(new SaveAppToDatabaseEvent(appCategoryChangedEvent.getAppModel()));
+        mAdapter.updateList(appCategoryChangedEvent.getPosition());
+    }
+
+
+    /**
+     * App category has been updated, we should ask  to save it it the database
+     * or update existing one asynchronously
+     * @param saveAppToDatabaseEvent {@link SaveAppToDatabaseEvent}
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onSaveAppToDatabaseEvent(SaveAppToDatabaseEvent saveAppToDatabaseEvent){
+        AppModel appModel = saveAppToDatabaseEvent.getAppModel();
+        if(appModel.getAppCategoriesModel().isNeutral()){
+            mAppsAsyncQueryHandler.delete(appModel);
+            return;
+        }
+        mAppsAsyncQueryHandler.insert(appModel);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(MainActivity.this,
+                DeviceAppsProvider.APPS_CONTENT_URI,
+                DEVICE_APPS_SUMMARY_PROJECCTION,
+                null,
+                null,
+                DbHelper.APP_NAME + " ASC");
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.i(TAG, data.toString());
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        //
+    }
 
     @Override
     protected void onStop() {
