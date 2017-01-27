@@ -3,6 +3,7 @@ package com.dark.webprog26.adapterwithloaders.adapters;
 import android.content.Context;
 import android.support.v7.widget.AppCompatRadioButton;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -105,6 +106,7 @@ public class AppsListAdapter extends RecyclerView.Adapter<AppsListAdapter.AppsLi
     }
 
     public void updateList(AppModel appModel, OnAppsListUpdatedCallback onAppsListUpdatedCallback){
+        Log.i(TAG, Thread.currentThread().getName());
         if(appModel != null){
             for(AppModel existingAppModel: mAppModelList){
                 if(existingAppModel.getAppLabel().equals(appModel.getAppLabel())){

@@ -22,6 +22,7 @@ import com.dark.webprog26.adapterwithloaders.handlers.AppsAsyncQueryHandler;
 import com.dark.webprog26.adapterwithloaders.managers.AppsListDownloadManager;
 import com.dark.webprog26.adapterwithloaders.managers.CursorManager;
 import com.dark.webprog26.adapterwithloaders.models.AppModel;
+import com.dark.webprog26.adapterwithloaders.models.AppsCategoriesCounter;
 import com.dark.webprog26.adapterwithloaders.models.events.AppCategoryChangedEvent;
 import com.dark.webprog26.adapterwithloaders.models.events.AppsListLoadedEvent;
 import com.dark.webprog26.adapterwithloaders.models.events.RetrieveAppsListEvent;
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     };
 
     private AppsAsyncQueryHandler mAppsAsyncQueryHandler;
+    private boolean isLoaded = false;
 
     @BindView(R.id.pbLoadingInProgress)
     ProgressBar mPbLoading;
@@ -116,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
        mAdapter = new AppsListAdapter(appsListLoadedEvent.getAppModels(), MainActivity.this);
 
        getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
-       getSupportLoaderManager().getLoader(DEVICE_APPS_LIST_LOADER_ID).forceLoad();
+       getSupportLoaderManager().getLoader(DEVICE_APPS_LIST_LOADER_ID).onContentChanged();
     }
 
 //    @Override
@@ -162,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Subscribe
     public void onAppCategoryChangedEvent(AppCategoryChangedEvent appCategoryChangedEvent){
         EventBus.getDefault().post(new SaveAppToDatabaseEvent(appCategoryChangedEvent.getAppModel()));
-//        mAdapter.updateList(appCategoryChangedEvent.getPosition());
+        mAdapter.updateList(appCategoryChangedEvent.getPosition());
     }
 
 
@@ -188,17 +190,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 DEVICE_APPS_SUMMARY_PROJECCTION,
                 null,
                 null,
-                DbHelper.APP_NAME + " ASC");
+                null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.i(TAG, "onLoadFinished data.getCount(): " + data.getCount());
-
-        if(data.getCount() > 0){
-            while(data.moveToNext()){
-                mAdapter.updateList(CursorManager.convertCursorToAppModel(data), this);
+        if(!isLoaded){
+            if(data.getCount() > 0){
+                while(data.moveToNext()){
+                    mAdapter.updateList(CursorManager.convertCursorToAppModel(data), this);
+                }
             }
+            isLoaded = true;
         }
     }
 

@@ -30,4 +30,8 @@ public class CursorManager {
 
         return appModel;
     }
+
+    public static boolean getBooleanValue(String s){
+        return Boolean.parseBoolean(s);
+    }
 }

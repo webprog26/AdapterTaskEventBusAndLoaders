@@ -81,7 +81,7 @@ public class DeviceAppsProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        Log.i(TAG, "insert, " + uri.toString());
+        Log.i(TAG, "insert, " + uri.toString() + ", thread " + Thread.currentThread().getName());
         if(URI_MATCHER.match(uri) != URI_APPS){
             throw new IllegalArgumentException("Wrong URI: " + uri);
         }

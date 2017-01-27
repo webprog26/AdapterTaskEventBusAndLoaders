@@ -14,6 +14,12 @@ public class AppsCategoriesCounter {
         return mEducationalCount;
     }
 
+    public AppsCategoriesCounter(int mEducationalCount, int mForFunCount, int mBlockedCount) {
+        this.mEducationalCount = mEducationalCount;
+        this.mForFunCount = mForFunCount;
+        this.mBlockedCount = mBlockedCount;
+    }
+
     public void setEducationalCount(int mEducationalCount) {
         this.mEducationalCount = mEducationalCount;
     }
