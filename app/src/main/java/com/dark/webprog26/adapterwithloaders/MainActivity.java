@@ -171,6 +171,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 while(data.moveToNext()){
                     mAdapter.updateList(CursorManager.convertCursorToAppModel(data), this);
                 }
+            } else {
+                onAppsListUpdated();
             }
             isLoaded = true;
         }
