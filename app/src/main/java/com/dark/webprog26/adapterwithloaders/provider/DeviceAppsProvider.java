@@ -85,7 +85,8 @@ public class DeviceAppsProvider extends ContentProvider {
         if(URI_MATCHER.match(uri) != URI_APPS){
             throw new IllegalArgumentException("Wrong URI: " + uri);
         }
-
+        Log.i(TAG, "inserting " + "educational " + values.get(DbHelper.IS_EDUCATIONAL) + ", for fun " + values.get(DbHelper.IS_FOR_FUN)
+        + ", blocked " + values.get(DbHelper.IS_BLOCKED));
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         long rowId = db.insert(DEVICE_APPS_PATH, null, values);
         Log.i(TAG, "rowId " + rowId);

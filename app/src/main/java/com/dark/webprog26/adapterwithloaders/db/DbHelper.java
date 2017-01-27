@@ -29,7 +29,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + DeviceAppsProvider.DEVICE_APPS_PATH + "("
                 + APP_ID + " integer primary key autoincrement, "
-                + APP_NAME  + " varchar(100), "
+                + APP_NAME  + " varchar(100) UNIQUE ON CONFLICT REPLACE, "
                 + IS_BLOCKED + " varchar(20), "
                 + IS_EDUCATIONAL + " varchar(20), "
                 + IS_FOR_FUN + " varchar(20))");

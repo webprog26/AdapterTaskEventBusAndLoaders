@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dark.webprog26.adapterwithloaders.R;
+import com.dark.webprog26.adapterwithloaders.callbacks.OnAppsListUpdatedCallback;
 import com.dark.webprog26.adapterwithloaders.listeners.OnRadioButtonClickListener;
 import com.dark.webprog26.adapterwithloaders.managers.AppCategoryManager;
 import com.dark.webprog26.adapterwithloaders.models.AppCategoriesModel;
@@ -101,5 +102,20 @@ public class AppsListAdapter extends RecyclerView.Adapter<AppsListAdapter.AppsLi
      */
     public void updateList(int appPosition){
         notifyItemChanged(appPosition);
+    }
+
+    public void updateList(AppModel appModel, OnAppsListUpdatedCallback onAppsListUpdatedCallback){
+        if(appModel != null){
+            for(AppModel existingAppModel: mAppModelList){
+                if(existingAppModel.getAppLabel().equals(appModel.getAppLabel())){
+                    existingAppModel.setAppCategoriesModel(appModel.getAppCategoriesModel());
+                    notifyDataSetChanged();
+                }
+            }
+
+            if(onAppsListUpdatedCallback != null){
+                onAppsListUpdatedCallback.onAppsListUpdated();
+            }
+        }
     }
 }

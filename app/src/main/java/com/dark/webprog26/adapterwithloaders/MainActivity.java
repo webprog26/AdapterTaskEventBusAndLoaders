@@ -16,9 +16,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.dark.webprog26.adapterwithloaders.adapters.AppsListAdapter;
+import com.dark.webprog26.adapterwithloaders.callbacks.OnAppsListUpdatedCallback;
 import com.dark.webprog26.adapterwithloaders.db.DbHelper;
 import com.dark.webprog26.adapterwithloaders.handlers.AppsAsyncQueryHandler;
 import com.dark.webprog26.adapterwithloaders.managers.AppsListDownloadManager;
+import com.dark.webprog26.adapterwithloaders.managers.CursorManager;
 import com.dark.webprog26.adapterwithloaders.models.AppModel;
 import com.dark.webprog26.adapterwithloaders.models.events.AppCategoryChangedEvent;
 import com.dark.webprog26.adapterwithloaders.models.events.AppsListLoadedEvent;
@@ -33,7 +35,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, OnAppsListUpdatedCallback{
 
     private static final String TAG = "MainActivity_TAG";
     private static final int DEVICE_APPS_LIST_LOADER_ID = DeviceAppsProvider.DEVICE_APPS_PATH.hashCode();
@@ -71,7 +73,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         setTitle(getResources().getString(R.string.page_title));
 
         mRvAppsList.setHasFixedSize(true);
@@ -79,8 +84,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mRvAppsList.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
 
         mAppsAsyncQueryHandler = new AppsAsyncQueryHandler(getContentResolver());
-
-        getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
     }
 
     @Override
@@ -110,12 +113,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAppsListLoadedEvent(AppsListLoadedEvent appsListLoadedEvent){
-       if(mPbLoading.getVisibility() == View.VISIBLE){
-           mPbLoading.setVisibility(View.GONE);
-       }
-
        mAdapter = new AppsListAdapter(appsListLoadedEvent.getAppModels(), MainActivity.this);
-       mRvAppsList.setAdapter(mAdapter);
+
+       getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
+       getSupportLoaderManager().getLoader(DEVICE_APPS_LIST_LOADER_ID).forceLoad();
     }
 
 //    @Override
@@ -161,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Subscribe
     public void onAppCategoryChangedEvent(AppCategoryChangedEvent appCategoryChangedEvent){
         EventBus.getDefault().post(new SaveAppToDatabaseEvent(appCategoryChangedEvent.getAppModel()));
-        mAdapter.updateList(appCategoryChangedEvent.getPosition());
+//        mAdapter.updateList(appCategoryChangedEvent.getPosition());
     }
 
 
@@ -192,12 +193,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Log.i(TAG, data.toString());
+        Log.i(TAG, "onLoadFinished data.getCount(): " + data.getCount());
+
+        if(data.getCount() > 0){
+            while(data.moveToNext()){
+                mAdapter.updateList(CursorManager.convertCursorToAppModel(data), this);
+            }
+        }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        //
+        Log.i(TAG, "loader reset");
+    }
+
+    @Override
+    public void onAppsListUpdated() {
+        if(mPbLoading.getVisibility() == View.VISIBLE){
+            mPbLoading.setVisibility(View.GONE);
+        }
+        mRvAppsList.setAdapter(mAdapter);
     }
 
     @Override
