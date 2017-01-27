@@ -33,6 +33,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -56,11 +58,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @BindView(R.id.countersLayout)
     LinearLayout mCountersLayout;
     @BindView(R.id.tvTotalAppsCount)
-    TextView mRvTotalAppsCount;
+    TextView mTvTotalAppsCount;
     @BindView(R.id.tvEducationalAppsCount)
     TextView mTvEducationalAppsCount;
     @BindView(R.id.tvBlockedlAppsCount)
-    TextView mTvBlockedlAppsCount;
+    TextView mTvBlockedAppsCount;
     @BindView(R.id.tvForFunAppsCount)
     TextView mTvForFunAppsCount;
     @BindView(R.id.rvAppsList)
@@ -115,46 +117,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAppsListLoadedEvent(AppsListLoadedEvent appsListLoadedEvent){
-       mAdapter = new AppsListAdapter(appsListLoadedEvent.getAppModels(), MainActivity.this);
-
+        List<AppModel> appModels = appsListLoadedEvent.getAppModels();
+       mAdapter = new AppsListAdapter(appModels, MainActivity.this);
+       mTvTotalAppsCount.setText(getResources().getString(R.string.total_count, appModels.size()));
        getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
        getSupportLoaderManager().getLoader(DEVICE_APPS_LIST_LOADER_ID).onContentChanged();
+
     }
-
-//    @Override
-//    public void onClick(View v) {
-//        ContentValues values;
-//        switch (v.getId()){
-//            case R.id.btnInsert:
-//                Log.i(TAG, "Insert");
-//                values = new ContentValues();
-//                values.put(DbHelper.APP_NAME, mTestAppModel.getAppLabel());
-//                values.put(DbHelper.IS_FOR_FUN, mTestAppModel.getAppCategoriesModel().isForFun());
-//                values.put(DbHelper.IS_EDUCATIONAL, mTestAppModel.getAppCategoriesModel().isEducational());
-//                values.put(DbHelper.IS_BLOCKED, mTestAppModel.getAppCategoriesModel().isBlocked());
-//                Uri insertUri = getContentResolver().insert(DeviceAppsProvider.APPS_CONTENT_URI, values);
-//                Log.i(TAG, "Insert. Result Uri: " + insertUri.toString());
-//                break;
-//            case R.id.btnUpdate:
-//                values = new ContentValues();
-//                mTestAppModel.getAppCategoriesModel().setEducational(true);
-////                Log.i(TAG, mTestAppModel.toString());
-//                values.put(DbHelper.IS_FOR_FUN, mTestAppModel.getAppCategoriesModel().isForFun());
-//                values.put(DbHelper.IS_EDUCATIONAL, mTestAppModel.getAppCategoriesModel().isEducational());
-//                values.put(DbHelper.IS_BLOCKED, mTestAppModel.getAppCategoriesModel().isBlocked());
-//                Uri updateUri = Uri.withAppendedPath(DeviceAppsProvider.APPS_CONTENT_URI, mTestAppModel.getAppLabel());
-//                int updateCount = getContentResolver().update(updateUri, values, null, null);
-//                Log.i(TAG, "Update. Count = " + updateCount);
-//                break;
-//            case R.id.btnDelete:
-//                Log.i(TAG, "Delete");
-//                Uri deleteUri = Uri.withAppendedPath(DeviceAppsProvider.APPS_CONTENT_URI, mTestAppModel.getAppLabel());
-//                int deleteCount = getContentResolver().delete(deleteUri, null, null);
-//                Log.i(TAG, "Update. Count = " + deleteCount);
-//                break;
-//        }
-//    }
-
 
     /**
      * App category has been updated, we may ask {@link AppsListAdapter} to
@@ -195,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        setCount(mAppsAsyncQueryHandler.getAppsCategoriesCounter());
         Log.i(TAG, "onLoadFinished data.getCount(): " + data.getCount());
         if(!isLoaded){
             if(data.getCount() > 0){
@@ -217,6 +187,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             mPbLoading.setVisibility(View.GONE);
         }
         mRvAppsList.setAdapter(mAdapter);
+    }
+
+    private void setCount(AppsCategoriesCounter counter){
+        mTvEducationalAppsCount.setText(getResources().getString(R.string.educational_count, counter.getEducationalCount()));
+        mTvBlockedAppsCount.setText(getResources().getString(R.string.blocked_count, counter.getBlockedCount()));
+        mTvForFunAppsCount.setText(getResources().getString(R.string.for_fun_count, counter.getForFunCount()));
+        if(mCountersLayout.getVisibility() == View.GONE){
+            mCountersLayout.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

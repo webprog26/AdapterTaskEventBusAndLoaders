@@ -2,14 +2,15 @@ package com.dark.webprog26.adapterwithloaders.handlers;
 
 import android.content.AsyncQueryHandler;
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.net.Uri;
 import android.util.Log;
 
+import com.dark.webprog26.adapterwithloaders.MainActivity;
 import com.dark.webprog26.adapterwithloaders.db.DbHelper;
 import com.dark.webprog26.adapterwithloaders.models.AppCategoriesModel;
 import com.dark.webprog26.adapterwithloaders.models.AppModel;
+import com.dark.webprog26.adapterwithloaders.models.AppsCategoriesCounter;
 import com.dark.webprog26.adapterwithloaders.provider.DeviceAppsProvider;
 
 /**
@@ -24,6 +25,17 @@ public class AppsAsyncQueryHandler extends AsyncQueryHandler {
     public AppsAsyncQueryHandler(ContentResolver cr) {
         super(cr);
         this.mContentResolver = cr;
+    }
+
+    public AppsCategoriesCounter getAppsCategoriesCounter(){
+        int educational = mContentResolver.query(DeviceAppsProvider.APPS_CONTENT_URI, MainActivity.DEVICE_APPS_SUMMARY_PROJECCTION,
+                DbHelper.IS_EDUCATIONAL + " = ?", new String[]{String.valueOf(true)}, null).getCount();
+        int for_fun = mContentResolver.query(DeviceAppsProvider.APPS_CONTENT_URI, MainActivity.DEVICE_APPS_SUMMARY_PROJECCTION,
+                DbHelper.IS_FOR_FUN + " = ?", new String[]{String.valueOf(true)}, null).getCount();
+        int blocked = mContentResolver.query(DeviceAppsProvider.APPS_CONTENT_URI, MainActivity.DEVICE_APPS_SUMMARY_PROJECCTION,
+                DbHelper.IS_BLOCKED + " = ?", new String[]{String.valueOf(true)}, null).getCount();
+
+        return new AppsCategoriesCounter(educational, for_fun, blocked);
     }
 
     public void insert(AppModel appModel){
