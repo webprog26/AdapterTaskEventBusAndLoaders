@@ -47,22 +47,25 @@ public class AppsListAdapter extends RecyclerView.Adapter<AppsListAdapter.AppsLi
 
     @Override
     public void onBindViewHolder(AppsListViewHolder holder, int position) {
-        AppModel appModel = mAppModelList.get(position);
+        AppModel appModel = mAppModelList.get(position);//initializing AppModel from mAppModelList by position
 
-        holder.mIvAppIcon.setImageBitmap(appModel.getAppIcon());
-        holder.mTvAppLabel.setText(appModel.getAppLabel());
+        holder.mIvAppIcon.setImageBitmap(appModel.getAppIcon());//setting App icon
+        holder.mTvAppLabel.setText(appModel.getAppLabel());//setting App name
 
-        AppCategoriesModel appCategoriesModel = appModel.getAppCategoriesModel();
+        AppCategoriesModel appCategoriesModel = appModel.getAppCategoriesModel();//initializing AppCategoriesModel
 
+        //initialzing RadioButtons with values
         holder.mRbEducational.setChecked(appCategoriesModel.isEducational());
         holder.mRbForFun.setChecked(appCategoriesModel.isForFun());
         holder.mRbBlocked.setChecked(appCategoriesModel.isBlocked());
 
         TextView appCategoryTextView = holder.mTvAppCategory;
 
+        //Initializing OnRadioButtonClickListener to handle RadioButtons click events
         OnRadioButtonClickListener clickListener = new OnRadioButtonClickListener(appModel,
                 position, mContextWeakReference.get(), appCategoryTextView);
 
+        //Initializing AppCategoryManager instance to handle category title changes
         new AppCategoryManager(mContextWeakReference.get()).setAppCategory(appCategoriesModel, appCategoryTextView);
 
         holder.mRbEducational.setOnClickListener(clickListener);
@@ -105,8 +108,12 @@ public class AppsListAdapter extends RecyclerView.Adapter<AppsListAdapter.AppsLi
         notifyItemChanged(appPosition);
     }
 
+    /**
+     * Updates whole list with categories values from database if they were previously set
+     * @param appModel {@link AppModel}
+     * @param onAppsListUpdatedCallback {@link OnAppsListUpdatedCallback}
+     */
     public void updateList(AppModel appModel, OnAppsListUpdatedCallback onAppsListUpdatedCallback){
-        Log.i(TAG, Thread.currentThread().getName());
         if(appModel != null){
             for(AppModel existingAppModel: mAppModelList){
                 if(existingAppModel.getAppLabel().equals(appModel.getAppLabel())){

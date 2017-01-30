@@ -5,5 +5,8 @@ package com.dark.webprog26.adapterwithloaders.callbacks;
  */
 
 public interface OnAppsListUpdatedCallback {
+    /**
+     * Handles AppsList was updated event
+     */
     void onAppsListUpdated();
 }

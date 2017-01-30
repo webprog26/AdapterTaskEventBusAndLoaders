@@ -27,6 +27,10 @@ public class AppsAsyncQueryHandler extends AsyncQueryHandler {
         this.mContentResolver = cr;
     }
 
+    /**
+     * Sends queries to DeviceAppsProvider to get count by categories
+     * @return AppsCategoriesCounter
+     */
     public AppsCategoriesCounter getAppsCategoriesCounter(){
         int educational = mContentResolver.query(DeviceAppsProvider.APPS_CONTENT_URI, MainActivity.DEVICE_APPS_SUMMARY_PROJECCTION,
                 DbHelper.IS_EDUCATIONAL + " = ?", new String[]{String.valueOf(true)}, null).getCount();
@@ -38,9 +42,12 @@ public class AppsAsyncQueryHandler extends AsyncQueryHandler {
         return new AppsCategoriesCounter(educational, for_fun, blocked);
     }
 
+    /**
+     * Inserts single AppModel data to database via DeviceAppsProvider
+     * @param appModel
+     */
     public void insert(AppModel appModel){
         AppCategoriesModel appCategoriesModel = appModel.getAppCategoriesModel();
-        Log.i(TAG, "insert " + appModel);
         ContentValues contentValues = new ContentValues();
         contentValues.put(DbHelper.APP_NAME, appModel.getAppLabel());
         contentValues.put(DbHelper.IS_EDUCATIONAL, String.valueOf(appCategoriesModel.isEducational()));
@@ -51,8 +58,11 @@ public class AppsAsyncQueryHandler extends AsyncQueryHandler {
         }
     }
 
+    /**
+     * Deletes single AppModel data from database via DeviceAppsProvider
+     * @param appModel
+     */
     public void delete(AppModel appModel){
-        Log.i(TAG, "delete " + appModel);
         String where = DbHelper.APP_NAME + " = ?";
         String[] args = new String[]{appModel.getAppLabel()};
         startDelete(0, null, DeviceAppsProvider.APPS_CONTENT_URI, where, args);

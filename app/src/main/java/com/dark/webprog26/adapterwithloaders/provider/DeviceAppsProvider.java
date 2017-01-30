@@ -50,18 +50,15 @@ public class DeviceAppsProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.i(TAG, "query: " + uri.toString());
 
         switch (URI_MATCHER.match(uri)){
             case URI_APPS:
-                Log.i(TAG, "URI_APPS");
                 if (TextUtils.isEmpty(sortOrder)) {
                     sortOrder = DbHelper.APP_NAME + " ASC";
                 }
                 break;
             case URI_SINGLE_APP:
                 String appName = uri.getLastPathSegment();
-                Log.i(TAG, "URI_SINGLE_APP " + appName);
                 if (TextUtils.isEmpty(selection)) {
                     selection = DbHelper.APP_NAME + " = " + appName;
                 } else {
@@ -81,15 +78,11 @@ public class DeviceAppsProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        Log.i(TAG, "insert, " + uri.toString() + ", thread " + Thread.currentThread().getName());
         if(URI_MATCHER.match(uri) != URI_APPS){
             throw new IllegalArgumentException("Wrong URI: " + uri);
         }
-        Log.i(TAG, "inserting " + "educational " + values.get(DbHelper.IS_EDUCATIONAL) + ", for fun " + values.get(DbHelper.IS_FOR_FUN)
-        + ", blocked " + values.get(DbHelper.IS_BLOCKED));
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
         long rowId = db.insert(DEVICE_APPS_PATH, null, values);
-        Log.i(TAG, "rowId " + rowId);
         Uri resultUri = ContentUris.withAppendedId(APPS_CONTENT_URI, rowId);
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
@@ -97,14 +90,11 @@ public class DeviceAppsProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        Log.i(TAG, "delete, " + uri.toString());
         switch (URI_MATCHER.match(uri)){
             case URI_APPS:
-                Log.i(TAG, "URI_APPS");
                 break;
             case URI_SINGLE_APP:
                 String appName = uri.getLastPathSegment();
-                Log.i(TAG, "URI_SINGLE_APP " + appName);
                 if (TextUtils.isEmpty(selection)) {
                     selection = DbHelper.APP_NAME + " = '" + appName + "'";;
                 } else {
@@ -123,14 +113,11 @@ public class DeviceAppsProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        Log.i(TAG, "update, " + uri.toString());
         switch (URI_MATCHER.match(uri)){
             case URI_APPS:
-                Log.i(TAG, "URI_APPS");
                 break;
             case URI_SINGLE_APP:
                 String appName = uri.getLastPathSegment();
-                Log.i(TAG, "URI_SINGLE_APP " + appName);
                 if (TextUtils.isEmpty(selection)) {
                     selection = DbHelper.APP_NAME + " = '" + appName + "'";
                 } else {
@@ -149,7 +136,6 @@ public class DeviceAppsProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(Uri uri) {
-        Log.i(TAG, "getType, " + uri.toString());
         switch (URI_MATCHER.match(uri)){
             case URI_APPS:
                 return DEVICE_APPS_CONTENT_TYPE;

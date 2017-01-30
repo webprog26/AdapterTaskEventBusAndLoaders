@@ -12,6 +12,11 @@ import com.dark.webprog26.adapterwithloaders.models.AppModel;
 
 public class CursorManager {
 
+    /**
+     * Converts received {@link Cursor} data to {@link AppModel}
+     * @param data {@link Cursor}
+     * @return AppModel
+     */
     public static AppModel convertCursorToAppModel(Cursor data){
         if(data == null){
             return null;
@@ -29,9 +34,5 @@ public class CursorManager {
         appModel.setAppCategoriesModel(appCategoriesModel);
 
         return appModel;
-    }
-
-    public static boolean getBooleanValue(String s){
-        return Boolean.parseBoolean(s);
     }
 }

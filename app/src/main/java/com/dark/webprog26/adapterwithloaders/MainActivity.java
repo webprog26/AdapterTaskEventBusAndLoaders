@@ -51,6 +51,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     };
 
     private AppsAsyncQueryHandler mAppsAsyncQueryHandler;
+
+    //To avoid unnecessary davise resource using by updating whole list every time, we make changes to any app category
+    //this flag is used to make Loader load data only if appp was started or orientation was changed
     private boolean isLoaded = false;
 
     @BindView(R.id.pbLoadingInProgress)
@@ -108,16 +111,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
      */
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onRetrieveAppsListEvent(RetrieveAppsListEvent retrieveAppsListEvent){
-        Log.i(TAG, "onRetrieveAppsListEvent");
         AppsListLoadedEvent appsListLoadedEvent = new AppsListLoadedEvent(AppsListDownloadManager
                 .getAppModelList(retrieveAppsListEvent
                         .getPackageManager()));
         EventBus.getDefault().post(appsListLoadedEvent);
     }
 
+    /**
+     * List of pre-installed apps loaded, we can initialize {@link AppsListAdapter} and count total apps number
+     * @param appsListLoadedEvent {@link AppsListLoadedEvent}
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onAppsListLoadedEvent(AppsListLoadedEvent appsListLoadedEvent){
-        List<AppModel> appModels = appsListLoadedEvent.getAppModels();
+       List<AppModel> appModels = appsListLoadedEvent.getAppModels();
        mAdapter = new AppsListAdapter(appModels, MainActivity.this);
        mTvTotalAppsCount.setText(getResources().getString(R.string.total_count, appModels.size()));
        getSupportLoaderManager().initLoader(DEVICE_APPS_LIST_LOADER_ID, null, this);
@@ -165,7 +171,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         setCount(mAppsAsyncQueryHandler.getAppsCategoriesCounter());
-        Log.i(TAG, "onLoadFinished data.getCount(): " + data.getCount());
         if(!isLoaded){
             if(data.getCount() > 0){
                 while(data.moveToNext()){
@@ -180,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Log.i(TAG, "loader reset");
+        //Not currently used
     }
 
     @Override
@@ -191,6 +196,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mRvAppsList.setAdapter(mAdapter);
     }
 
+    /**
+     * Initializes apps categories count
+     * @param counter AppsCategoriesCounter
+     */
     private void setCount(AppsCategoriesCounter counter){
         mTvEducationalAppsCount.setText(getResources().getString(R.string.educational_count, counter.getEducationalCount()));
         mTvBlockedAppsCount.setText(getResources().getString(R.string.blocked_count, counter.getBlockedCount()));

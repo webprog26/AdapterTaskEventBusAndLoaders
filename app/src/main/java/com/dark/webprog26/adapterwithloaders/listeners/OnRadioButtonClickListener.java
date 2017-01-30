@@ -68,7 +68,9 @@ public class OnRadioButtonClickListener implements View.OnClickListener {
                 mAppCategoriesModel.setBlocked(true);
                 break;
         }
+        //App category has been changed, so we should let our Activity call adapter's updateList(iont position) method
         EventBus.getDefault().post(new AppCategoryChangedEvent(mAppModel, mAppPosition));
+        //Initializing AppCategoryManager instance to handle category title changes
         new AppCategoryManager(mContextWeakReference.get()).setAppCategory(mAppCategoriesModel, mTvAppCategory);
     }
 }
